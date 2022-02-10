@@ -44,7 +44,12 @@ with open(unlabelled_data_path, "r") as ul:
 print(f"Labelling {len(source_sentences)} examples...")
 
 def format_time(seconds):
-    return f"{seconds:.2f}s"
+    if seconds < 60:
+        return f"{seconds:.2f}s"
+    elif seconds < 60 * 60:
+        return f"{(seconds/60.):.2f}min"
+    return f"{(seconds/3600.):.2f}h"
+
 
 # style = [0=Casual to Formal, 1=Formal to Casual, 2=Active to Passive, 3=Passive to Active etc..]
 sf = Styleformer(style = 1) 
