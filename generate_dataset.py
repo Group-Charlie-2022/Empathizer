@@ -2,6 +2,7 @@ from styleformer import Styleformer
 from dotenv import load_dotenv
 import warnings
 import zipfile
+import random
 import time
 import sys
 import os
@@ -24,7 +25,9 @@ if os.path.exists(labelled_data_path):
     sys.exit()
 
 # If the unlabelled data doesn't exist, fetch it from Kaggle
-if not os.path.exists(unlabelled_data_path):
+if os.path.exists(unlabelled_data_path):
+    print(f"Using unlabelled data from '{unlabelled_data_path}'")
+else:
     print(f"'{unlabelled_data_path}' not found. Fetching from Kaggle: '{unlabelled_dataset_kaggle}/{unlabelled_dataset_kaggle_file}'...")
     api = KaggleApi()
     api.authenticate()
@@ -38,12 +41,12 @@ if not os.path.exists(unlabelled_data_path):
 
 # Load unlabelled example
 with open(unlabelled_data_path, "r") as ul:
-    lines = ul.readlines()
-    if len(sys.argv) >= 2:
-        lines = lines[:int(sys.argv[1])]
-    source_sentences = list(x.strip() for x in lines if x.strip() != "")
+    source_sentences = [x.strip() for x in ul.readlines() if x.strip() != ""]
+    random.shuffle(source_sentences)
+print("Done filtering unlabelled dataset.")
 
-print(f"Labelling {len(source_sentences)} examples...")
+desired_count = min(len(source_sentences), int(sys.argv[1])) if len(sys.argv) >= 2 else len(source_sentences)
+print(f"Attempting to label {desired_count} examples...")
 
 def format_time(seconds):
     if seconds < 60:
@@ -54,15 +57,19 @@ def format_time(seconds):
 
 
 # style = [0=Casual to Formal, 1=Formal to Casual, 2=Active to Passive, 3=Passive to Active etc..]
-sf = Styleformer(style = 1) 
+succeeded = 0
+sf = Styleformer(style = 1)
 with open(labelled_data_path, "w") as l:
-    start_time = time.time()
-    for i, source_sentence in enumerate(source_sentences):
-        target_sentence = sf.transfer(source_sentence)
-        elapsed = time.time()-start_time
-        print(f"Labelled [{i+1}/{len(source_sentences)}], {(100*(i+1)/len(source_sentences)):.5f}%, Elapsed: {format_time(elapsed)}, Avg: {format_time(elapsed/(i+1))}/sample, ETA: {format_time((len(source_sentences)-i-1)*elapsed/(i+1))}")
-        if target_sentence is not None:
-            clean = target_sentence.replace("\n", "").replace("\r", "")
-            l.write(f"{clean}\n{source_sentence}\n")
-        else:
-            print("Failed to find good label.")
+    l.write("")
+start_time = time.time()
+for i, source_sentence in enumerate(source_sentences):
+    target_sentence = sf.transfer(source_sentence)
+    if target_sentence is not None:
+        succeeded += 1
+        clean = target_sentence.replace("\n", "").replace("\r", "")
+        with open(labelled_data_path, "a") as l:
+            l.write(f"{source_sentence}\n{clean}\n")
+    elapsed = time.time()-start_time
+    print(f"[{succeeded}/{desired_count}], {(100*(i+1)/desired_count):.5f}%, Elapsed: {format_time(elapsed)}, Avg: {format_time(elapsed/(i+1))}/sample, ETA: {format_time((desired_count-succeeded)*elapsed/succeeded)}, Attempted: {i+1}, Success rate: {(100*succeeded/(i+1)):.2f}%")
+    if succeeded == desired_count:
+        break
