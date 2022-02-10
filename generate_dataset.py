@@ -36,10 +36,12 @@ if not os.path.exists(unlabelled_data_path):
     os.unlink(f"{unlabelled_dataset_kaggle_file}.zip")
     print("Downloaded unlabelled dataset.")
 
-
 # Load unlabelled example
 with open(unlabelled_data_path, "r") as ul:
-    source_sentences = list(x.strip() for x in ul.readlines()[:10] if x.strip() != "")
+    lines = ul.readlines()
+    if len(sys.argv) >= 2:
+        lines = lines[:int(sys.argv[1])]
+    source_sentences = list(x.strip() for x in lines if x.strip() != "")
 
 print(f"Labelling {len(source_sentences)} examples...")
 
