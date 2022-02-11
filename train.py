@@ -13,7 +13,8 @@ import torch.nn.functional as F
 
 plt.switch_backend('agg')
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Currently seems as though the models take too much memory to run on the GPU (~8GB)
+device = "cpu"#torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 labelled_data_path = "labelled.txt"
 
@@ -230,6 +231,7 @@ def show_plot(points):
     loc = ticker.MultipleLocator(base=0.2)
     ax.yaxis.set_major_locator(loc)
     plt.plot(points)
+    plt.show()
 
 
 def train_iters(pair_tensors, encoder, decoder, n_iters, print_every=1000, plot_every=100, learning_rate=0.01):
@@ -250,13 +252,13 @@ def train_iters(pair_tensors, encoder, decoder, n_iters, print_every=1000, plot_
         print_loss_total += loss
         plot_loss_total += loss
 
-        if (iter + 1) % print_every == 0:
+        if iter % print_every == 0:
             print_loss_avg = print_loss_total / print_every
             print_loss_total = 0
             elapsed = time.time() - start
-            print(f"Iter [{iter+1}/{n_iters}] - {(100 * (iter+1)/n_iters):.4f}%, Elapsed: {format_time(elapsed)}, ETA: {format_time(elapsed/(i+1) * (n_iters - i - 1))}, Avg loss: {print_loss_avg:.5f}")
+            print(f"Iter [{iter+1}/{n_iters}] - {(100 * (iter+1)/n_iters):.4f}%, Elapsed: {format_time(elapsed)}, ETA: {format_time(elapsed/(iter+1) * (n_iters - iter - 1))}, Avg loss: {print_loss_avg:.5f}")
 
-        if (iter + 1) % plot_every == 0:
+        if iter % plot_every == 0:
             plot_loss_avg = plot_loss_total / plot_every
             plot_loss_total = 0
             plot_losses.append(plot_loss_avg)
@@ -311,4 +313,4 @@ pair_tensors = [get_pair_tensors(formal, casual, pair) for pair in pairs]
 encoder = EncoderRNN(len(formal.words), hidden_size).to(device)
 attn_decoder = AttnDecoderRNN(hidden_size, len(casual.words)).to(device)
 
-train_iters(pair_tensors, encoder, attn_decoder, 1000)
+train_iters(pair_tensors, encoder, attn_decoder, 1000, print_every=1, plot_every=1)
