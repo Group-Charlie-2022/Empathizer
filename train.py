@@ -11,8 +11,6 @@ import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 
-plt.switch_backend('agg')
-
 # Currently seems as though the models take too much memory to run on the GPU (~8GB)
 device = "cpu"#torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -24,7 +22,7 @@ end_symbol = "<END>"
 start_symbol_index = 0  # These values can't change
 end_symbol_index = 1   # ^^^
 
-max_sentence_length = 10  # This seems to be a limiting factor memory-wise
+max_sentence_length = 5  # This seems to be a limiting factor memory-wise
 teacher_forcing_ratio = 0.5
 
 
@@ -195,7 +193,7 @@ def train(x, desired_y, encoder, decoder, encoder_optimizer, decoder_optimizer, 
 
 def format_time(seconds):
     if seconds < 60:
-        return f"{seconds}s"
+        return f"{seconds:.2f}s"
     elif seconds < 3600:
         return f"{(seconds/60):.2f}min"
     else:
@@ -203,13 +201,9 @@ def format_time(seconds):
 
 
 def show_plot(points):
-    plt.figure()
-    fix, ax = plt.subplots()
-    loc = ticker.MultipleLocator(base=0.2)
-    ax.yaxis.set_major_locator(loc)
-    plt.plot(points)
-    plt.show()
-
+    with plt.ion():
+        plt.figure(num="label", clear=True)
+        plt.plot(points)
 
 def train_iters(pair_tensors, encoder, decoder, n_iters, print_every=1000, plot_every=100, learning_rate=0.01):
     start = time.time()
@@ -240,7 +234,7 @@ def train_iters(pair_tensors, encoder, decoder, n_iters, print_every=1000, plot_
             plot_loss_total = 0
             plot_losses.append(plot_loss_avg)
 
-    show_plot(plot_losses)
+            show_plot(plot_losses)
 
 
 def evaluate(encoder, decoder, sentence, input_style, output_style, max_length=max_sentence_length):
