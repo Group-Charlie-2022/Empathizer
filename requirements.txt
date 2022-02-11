@@ -1,0 +1,8 @@
+# PyTorch also required. https://pytorch.org/
+python-dotenv
+kaggle
+matplotlib
+ipympl
+git+https://github.com/PrithivirajDamodaran/Styleformer.git
+# If there are issues with the python-Levenshtein package on Windows,
+# try installing a wheel directly from https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-levenshtein
