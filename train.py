@@ -1,17 +1,16 @@
 # Ref: https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html
 
-import matplotlib.ticker as ticker
 import re
 import time
 import random
-import unicodedata
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 import torch
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 
-import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -24,7 +23,7 @@ end_symbol = "<END>"
 start_symbol_index = 0  # These values can't change
 end_symbol_index = 1   # ^^^
 
-max_sentence_length = 128
+max_sentence_length = 10  # This seems to be a limiting factor memory-wise
 teacher_forcing_ratio = 0.5
 
 
@@ -44,19 +43,12 @@ class Style:
         else:
             self.word_count[word] += 1
 
-    def add_sentence(self, sentence):
-        for word in re.findall(r"[A-Za-z-']+|[^ ]+", sentence):
+    def add_sentence(self, sentence, max_length=max_sentence_length):
+        for word in re.findall(r"[A-Za-z-']+|[^ ]+", sentence)[:max_length-1]:
             self.add_word(word)
 
-    def get_sentence_indices(self, sentence):
-        return [self.word_to_index[word] for word in re.findall(r"[A-Za-z-']+|[^ ]+", sentence) if word in self.word_to_index]
-
-
-def unicode_to_ascii(s):
-    return ''.join(
-        c for c in unicodedata.normalize('NFD', s)
-        if unicodedata.category(c) != 'Mn'
-    )
+    def get_sentence_indices(self, sentence, max_length=max_sentence_length):
+        return list(self.word_to_index[word] for word in re.findall(r"[A-Za-z-']+|[^ ]+", sentence) if word in self.word_to_index)[:max_length-1]
 
 
 def load_styles(style1, style2):
@@ -93,26 +85,26 @@ class EncoderRNN(nn.Module):
         return torch.zeros(1, 1, self.hidden_size, device=device)
 
 
-class DecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size):
-        super(DecoderRNN, self).__init__()
-        self.hidden_size = hidden_size
-        self.output_size = output_size
+# class DecoderRNN(nn.Module):
+#     def __init__(self, hidden_size, output_size):
+#         super(DecoderRNN, self).__init__()
+#         self.hidden_size = hidden_size
+#         self.output_size = output_size
 
-        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
-        self.gru = nn.GRU(self.hidden_size, self.hidden_size)
-        self.out = nn.Linear(self.hidden_size, self.output_size)
-        self.softmax = nn.LogSoftMax(dim=1)
+#         self.embedding = nn.Embedding(self.output_size, self.hidden_size)
+#         self.gru = nn.GRU(self.hidden_size, self.hidden_size)
+#         self.out = nn.Linear(self.hidden_size, self.output_size)
+#         self.softmax = nn.LogSoftMax(dim=1)
 
-    def forward(self, x, hidden):
-        y = self.embedding(x).view(1, 1, -1)
-        y = F.relu(y)
-        y, hidden = self.gru(y, hidden)
-        y = self.softmax(self.out(y[0]))
-        return y, hidden
+#     def forward(self, x, hidden):
+#         y = self.embedding(x).view(1, 1, -1)
+#         y = F.relu(y)
+#         y, hidden = self.gru(y, hidden)
+#         y = self.softmax(self.out(y[0]))
+#         return y, hidden
 
-    def init_hidden(self):
-        return torch.zeros(1, 1, self.hidden_size, device=device)
+#     def init_hidden(self):
+#         return torch.zeros(1, 1, self.hidden_size, device=device)
 
 
 class AttnDecoderRNN(nn.Module):
@@ -189,7 +181,7 @@ def train(x, desired_y, encoder, decoder, encoder_optimizer, decoder_optimizer, 
 
     decoder_hidden = encoder_hidden
 
-    use_teacher_forcing = True#random.random() < teacher_forcing_ratio
+    use_teacher_forcing = True  # random.random() < teacher_forcing_ratio
 
     if use_teacher_forcing:
         for di in range(desired_y_length):
@@ -312,7 +304,7 @@ def evaluate(encoder, decoder, sentence, input_style, output_style, max_length=m
 
 
 formal, casual, pairs = load_styles("formal", "casual")
-hidden_size = max(len(formal.words), len(casual.words)) + 1
+hidden_size = max(256, max(len(formal.words), len(casual.words)) + 1)
 print(f"Hidden size: {hidden_size}")
 pair_tensors = [get_pair_tensors(formal, casual, pair) for pair in pairs]
 
