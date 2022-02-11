@@ -85,29 +85,6 @@ class EncoderRNN(nn.Module):
     def init_hidden(self):
         return torch.zeros(1, 1, self.hidden_size, device=device)
 
-
-# class DecoderRNN(nn.Module):
-#     def __init__(self, hidden_size, output_size):
-#         super(DecoderRNN, self).__init__()
-#         self.hidden_size = hidden_size
-#         self.output_size = output_size
-
-#         self.embedding = nn.Embedding(self.output_size, self.hidden_size)
-#         self.gru = nn.GRU(self.hidden_size, self.hidden_size)
-#         self.out = nn.Linear(self.hidden_size, self.output_size)
-#         self.softmax = nn.LogSoftMax(dim=1)
-
-#     def forward(self, x, hidden):
-#         y = self.embedding(x).view(1, 1, -1)
-#         y = F.relu(y)
-#         y, hidden = self.gru(y, hidden)
-#         y = self.softmax(self.out(y[0]))
-#         return y, hidden
-
-#     def init_hidden(self):
-#         return torch.zeros(1, 1, self.hidden_size, device=device)
-
-
 class AttnDecoderRNN(nn.Module):
     def __init__(self, hidden_size, output_size, dropout_p=0.1, max_length=max_sentence_length):
         super(AttnDecoderRNN, self).__init__()
