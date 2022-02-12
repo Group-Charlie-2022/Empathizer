@@ -2,4 +2,5 @@
 *.zip
 .env
 models/
+keras-checkpoints/
 !requirements.txt
