@@ -1,3 +1,6 @@
 * text eol=lf
 *.png binary
 *.jpg binary
+*.csv binary
+*.xlsx binary
+*.pdf binary

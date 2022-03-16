@@ -1,68 +1,46 @@
-# Individual Progress Report - Morgan Saville
+# Reflection on Overall Experience
 
-## Overview
+I enjoyed the group project, as it presented new technical skills I had to learn such as designing machine learning models. The project was an interesting exercise in making software for a specific client, and only having limited freedom in terms of functionality.
 
-I have been working primarily on the *Text Empathiser* component of the framework. Broadly, this component will take some pre-defined sentence (e.g., configured by Clinicians, or coming from an external mecical API) and makes it more empathetic.
+Furthermore, while the group aspect was challenging at first with different members often having fundamentally different and incompatible ideas, it was useful to practice resolving such disagreements swiftly. Indeed, our group grew more cohesive over the course of the project.
+
+# Summary of Personal Contribution
+
+I worked primarily on the *Text Empathiser* component of the framework. Broadly, this component takes some pre-defined sentence (e.g., configured by Clinicians, or coming from an external mecical API) and makes it more empathetic.
 
 The bulk of my research has been on text style transfer. In particular, *Formal* &rarr; *Casual*. This is done in the hope that a great amount of perceived empathy/humanity can be injected into the pre-defined text by converting it from formal speech to casual speech.
 
 The code can be found [here](https://github.com/Group-Charlie-2022/Empathizer.git).
 
-Additionally, I've been creating some basic front-end interfaces for the chatbot, to demonstrate that our API is easily deployed to many platforms.
+Additionally, I've created some basic front-end interfaces for the chatbot, to demonstrate that our API is easily deployed to many platforms.
 
 The code for these can be found here:
  - [Web interface](https://github.com/Group-Charlie-2022/WebClient)
  - [Discord bot](https://github.com/Group-Charlie-2022/DiscordBot)
 
-## Tl;dr
 
-### Where am I at?
-- Created web and discord-bot front-ends for the chatbot
-- Currently using a Transformer-based model to translate formal sentences into casual sentences.
-- Promising results but requiring further research and better training data.
+## Front ends
 
-### What still needs to be done?
-- Procuring better training data
-- Tweaking the Transformer model
-- Adding proper punctuation to output sentences.
-- Experimenting with phatic expressions (e.g., "I'm sorry to hear that!") and emoticons
-    - This will require some sentiment analysis
-- Ensure safety
-    - Prove that the model is sufficiently unlikely to dangerously alter the meaning
-- Integrate with the rest of the project
+It is important that our chatbot be portable, in the sense that it can be deployed via a wide variety of front-ends (WhatsApp, Viber, etc.). While WhatsApp bots usually cost money to deploy and we did not have a budget for this project, I made a web interface and a discord-bot interface to demonstrate the principle that our project is platform-independent.
 
-## 14/02/2022
-
-### Front ends
-
-It is important that our chatbot be portable, in the sense that it can be deployed via a wide variety of front-ends (WhatsApp, Viber, etc.). While WhatsApp bots usually cost money to deploy and we do not have a budget for this project, I've made a web interface and a discord-bot interface to demonstrate the principle that our project is platform-independent.
-
-**NOTE:** At this point, the API is not sending back any meaningful response. However, this is simply placeholder functionality. The point being demonstrated is that both interfaces are using the same API (as could many other interfaces), which will eventually be a functioning chatbot.
-
-#### Web Interface
+### Web Interface
 ![Web Interface](imgs/web.png "Web Interface")
 
 
-#### Discord Bot
+### Discord Bot
 ![Discord Bot](imgs/discord.png "Discord Bot")
 
-### *Formal* &rarr; *Casual* Style Transfer
+## *Formal* &rarr; *Casual* Style Transfer
 
-#### Styleformer
+### Styleformer
 
-I found a Python library called [Styleformer](https://github.com/PrithivirajDamodaran/Styleformer) which performs *Formal* &rarr; *Casual* style transfer. However, it is a bit too slow for real-time conversation (about 3-4s per sentence).
+I found a Python library called [Styleformer](https://github.com/PrithivirajDamodaran/Styleformer) which performs *Formal* &rarr; *Casual* style transfer. However, it was a bit too slow for real-time conversation (about 3-4s per sentence).
 
-#### Dataset
+### Dataset
 
-I hope to gain access to the [GYAFC corpus](https://github.com/raosudha89/GYAFC-corpus) which is a benchmark dataset for formality style transfer. I have reached out to the creator, Joel Tetreault, but have not yet heard back.
+While waiting to gain access to the [GYAFC corpus](https://github.com/raosudha89/GYAFC-corpus) (which I never did), I used Styleformer which, though too slow to create real-time transformations, was a handy tool for labelling training data. I've used an unlabelled dataset of [sentences in the introduction paragraphs of Wikipedia articles](https://www.kaggle.com/mikeortman/wikipedia-sentences) and used Styleformer to translate each from casual to formal English, saving the results as a placeholder labelled dataset.
 
-If I do not hear back soon I will use an alternative dataset such as those found in the [Data4StylizedS2S repository](https://github.com/MarkWuNLP/Data4StylizedS2S).
-
-In the mean-time, I've been using Styleformer which, though too slow to create real-time transformations, is a handy tool for labelling training data. I've used an unlabelled dataset of [sentences in the introduction paragraphs of Wikipedia articles](https://www.kaggle.com/mikeortman/wikipedia-sentences) and used Styleformer to translate each from casual to formal English, saving the results as a placeholder labelled dataset.
-
-This dataset does require the assumption that Wikipedia articles are written in formal English, but I believe this is justified. Furthermore, this dataset is just to be used as a placeholder to test the algorithms.
-
-#### Attempt 1 &mdash; PyTorch Sequence-to-Sequence Model with Attention
+### Attempt 1 &mdash; PyTorch Sequence-to-Sequence Model with Attention
 
 Following guidance from [the PyTorch website](https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html) I implemented a basic style transfer model which used GRUs for recurrance and an *Attention* layer.
 
@@ -74,7 +52,7 @@ Limiting the vocabulary size resulted in no useful training. In fact, the loss *
 
 ![PyTorch Seq2Seq Loss](imgs/pytorch-1-loss.png "PyTorch Seq2Seq Loss")
 
-#### Attempt 2 &mdash; Keras Sequence-to-Sequence Model
+### Attempt 2 &mdash; Keras Sequence-to-Sequence Model
 
 I created the second model in Keras as it abstracts away a lot of the boilerplate code. I felt that this would make the models easier to debug and extend, as it is much more clear what every component is doing.
 
@@ -98,40 +76,58 @@ In my opinion this could be one of several factors:
 
 - LSTMs simply take much longer to train than GRUs, and over a much longer timespan then progress would have been made. This would nonetheless make the model unusable due to the timespan of the project.
 
-- The dataset contained mostly words which did not appear in the GloVe embedding. This is significant possibility, as Wikipedia tends to contain quite technical language and uncommon words. Though the Wikipedia dataset is only a placeholder, it is still not unlikely that our final dataset will contain similarly rare medical jargon.
+- The dataset contained mostly words which did not appear in the GloVe embedding. This is significant possibility, as Wikipedia tends to contain quite technical language and uncommon words. Though the Wikipedia dataset was only a placeholder, even the final chatbot needed to use similarly rare medical jargon.
 
 - The model did not have enough parameters (i.e., the hidden dimension of the RNNs was too small) to properly learn the natural language patterns required to perform formality transfer. This would be a serious issue because the model's size was already pushing the limits of what my GPU could handle.
 
-Though this model showed some promise, these serious issues are fundamental enough to justify starting over using a different technique.
+Though this model showed some promise, these serious issues were fundamental enough to justify starting over using a different technique.
 
-#### Attempt 3 &mdash; Transformer Sequence-to-Sequence model
+### Attempt 3 &mdash; Transformer Sequence-to-Sequence model
 
-This, so far is the most promising model.
-
-It is based primarily on the following resources:
+This model was based primarily on the following resources:
 
 - https://arxiv.org/abs/1706.03762
 - https://keras.io/examples/nlp/neural_machine_translation_with_transformer/
 - https://www.youtube.com/watch?v=TQQlZhbC5ps
 
-This model uses transformers rather than RNNs, and makes use of the *Attention* mechanism implemented in my first model.
+This model used transformers rather than RNNs, and made use of the *Attention* mechanism implemented in my first model.
 
-Instead of using GloVe, this model includes a trainable positional embedding layer. More research is required into how the efficacy of this model changes when instead using GloVe. My hypothesis, however, is that a trainable embedding will allow the model to be more flexible with respect to uncommon words such as medical jargon.
+Instead of using GloVe, this model included a trainable positional embedding layer. More research is required into how the efficacy of this model changes when instead using GloVe. My hypothesis, however, was that a trainable embedding will allow the model to be more flexible with respect to uncommon words such as medical jargon.
 
-Unfortunately, this model does still show signs of overfitting. The training loss is decreasing at a good rate, but the validation loss is staying steadily high.
+Unfortunately, this model did still show signs of overfitting. The training loss was decreasing at a good rate, but the validation loss was staying steadily high.
 
 ![Transformer Loss](imgs/transformer-1-loss.png "Transformer Loss")
 
-This requires more research but I would guess this is due to some combination of the following factors:
+I would have liked to have done more research but I would guess this is due to some combination of the following factors:
 
-- The network is too big. The network may have enough parameters that it simply memorises the training data.
+- The network was too big. The network may have had enough parameters that it simply memorised the training data.
 
-- The dataset is too small. There may not be enough training data to sufficiently demonstrate the natural language patterns for the model to learn.
+- The dataset was too small. There may not have been enough training data to sufficiently demonstrate the natural language patterns for the model to learn.
 
-- The dataset is poor quality. Though the Styleformer library used to label the data performs relatively well, training another model on its output may be akin to taking a photocopy of a photocopy.
+- The dataset was poor quality. Though the Styleformer library used to label the data performed well, training another model on its output may have been akin to taking a photocopy of a photocopy.
 
-- The training sentences are too long. With the current dataset, some sentences are up to 600 words long. This is likely more than the chatbot should output in any given sentence, and this high sequence length might be affecting the learning.
+- The training sentences were too long. With the Wikipedia current dataset, some sentences were up to 600 words long. This is more than the chatbot should output in any given sentence, and this high sequence length might have been affecting the learning.
 
-All of these problems will hopefully be solved once I am able to procure a better dataset, or in the meantime by cleaning up the placeholder one.
+### Attempt 4 &mdash; Redesigning Styleformer
 
-One side effect of this model is that the output sentences lack punctuation and capitalisation. This will need to be re-introduced in a later step.
+The final model I ended up using was based on Styleformer, but with all of the unnecessary featured stripped out. This, coupled with making the model better able to run on the GPU, made the empathiser fast enough to hold real-time conversations (approx. 1ms per conversion).
+
+## Contributions Made by Other Team Members
+
+In my opinion, all of the other team members worked very well and contributed exactly what was required in a timely manner.
+
+Klaudia provided the conversational component which worked well. Even in a case where the question categoriser miscategorises an unsafe/medical question as a conversational one, the conversational bot generates a good, empathetic respone.
+
+Alex and Bethany created the question categoriser. They worked well together and divided the work sensibly, with Bethany generating the training data and Alex building the model which learns from it. When issues arose they were quick to identify and resolve them.
+
+Ben created the medical component. While he seemed unsure about how to initially get started on the system, he was very willing to ask for guidance and once we had all discussed an approach together, he implemented it himself and his results worked very well. Though the medical component can occasionally offer some questionable advice, this is largely a limitation of the information available on the WHO website &mdash; which our client said that we should use &mdash; rather than of the implementation.
+
+Overall I am very happy with every team member's work and contributions.
+
+## Sample code
+
+As written above, the code for my contributions can be found in the following repositories:
+
+ - [Empathizer](https://github.com/Group-Charlie-2022/Empathizer.git)
+ - [Web interface](https://github.com/Group-Charlie-2022/WebClient)
+ - [Discord bot](https://github.com/Group-Charlie-2022/DiscordBot)

@@ -41,8 +41,8 @@ else:
 
 # Load unlabelled example
 with open(unlabelled_data_path, "r") as ul:
-    source_sentences = [x.strip() for x in ul.readlines() if x.strip() != ""]
-    random.shuffle(source_sentences)
+    source_sentences = [x.strip() for x in ul.readlines() if x.strip() != "" and len(x.strip().split(" ")) < 30]
+random.shuffle(source_sentences)
 print("Done filtering unlabelled dataset.")
 
 desired_count = min(len(source_sentences), int(sys.argv[1])) if len(sys.argv) >= 2 else len(source_sentences)
@@ -63,7 +63,7 @@ with open(labelled_data_path, "w") as l:
     l.write("")
 start_time = time.time()
 for i, source_sentence in enumerate(source_sentences):
-    target_sentence = sf.transfer(source_sentence)
+    target_sentence = sf.transfer(source_sentence, inference_on=1)
     if target_sentence is not None:
         succeeded += 1
         clean = target_sentence.replace("\n", "").replace("\r", "")
